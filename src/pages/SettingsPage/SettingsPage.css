@@ -1,0 +1,27 @@
+.settings-header{
+  margin: 40px;
+  font-size: 2rem;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.options-card{
+  margin:40px;
+}
+.option{
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: center;
+  margin: 20px 40px;
+  font-size: 1.25rem;
+  gap:2rem;
+}
+.bot-state{
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap:10px;
+}

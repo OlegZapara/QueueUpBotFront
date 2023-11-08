@@ -1,0 +1,29 @@
+.not-found-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 75vh;
+  gap:20px;
+}
+.status{
+  color: var(--primary-color);
+  font-size: 8rem;
+  font-weight: 1000;
+}
+.description{
+  font-size: 4rem;
+  font-weight: 500;
+}
+.link{
+  font-size: 2rem;
+}
+.link > a:-webkit-any-link{
+  color:var(--primary-color);
+  text-decoration: none;
+}
+.link-icon{
+  margin-left: 5px;
+  font-size: 1.5rem;
+  color:var(--primary-color);
+}

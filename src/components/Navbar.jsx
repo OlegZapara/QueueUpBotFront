@@ -12,7 +12,7 @@ export default function Navbar() {
       case '/':
         setIndex(0);
         break;
-      case '/schedule':
+      case '/timetable':
         setIndex(1);
         break;
       case '/documentation':
@@ -35,7 +35,7 @@ export default function Navbar() {
   }
   const items = [
     {label: 'Головна', icon: 'pi pi-fw pi-home', to: '/'},
-    {label: 'Розклад', icon: 'pi pi-fw pi-calendar', to:'/schedule'},
+    {label: 'Розклад', icon: 'pi pi-fw pi-calendar', to:'/timetable'},
     {label: 'Документація', icon: 'pi pi-fw pi-file', to:'/documentation'},
     {label: 'Налаштування', icon: 'pi pi-fw pi-cog', to:'/settings'},
   ];

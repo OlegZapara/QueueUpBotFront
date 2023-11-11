@@ -1,18 +1,27 @@
-export class Schedule{
+export class Timetable{
+  weekType
+  days
   constructor(weekType, days){
     this.weekType = weekType;
-    this.days = days.map((day) => new ScheduleDay(day));
+    this.days = days.map((day) => new TimetableDay(day.dayName, day.classEntries));
   }
 }
 
-export class ScheduleDay{
+export class TimetableDay{
+  dayName
+  classEntries
   constructor(dayName, classEntries){
     this.dayName = dayName;
-    this.classEntries = classEntries.map((entry) => new ScheduleEntry(entry));
+    this.classEntries = classEntries.map((entry) => new TimetableEntry(entry.className, entry.startTime, entry.endTime, entry.classType, entry.url));
   }
 }
 
-export class ScheduleEntry{
+export class TimetableEntry{
+  className
+  startTime
+  endTime
+  classType
+  url
   constructor(className, startTime, endTime, classType, url){
     this.className = className;
     this.startTime = startTime;
@@ -236,3 +245,12 @@ export const defaultData = [
 ]
 },
 ]
+
+
+export const defaultClassData = defaultData.map(week => (
+  new Timetable(week.weekType, week.days.map(day => (
+    new TimetableDay(day.dayName, day.classEntries.map(entry => (
+      new TimetableEntry(entry.className, entry.startTime, entry.endTime, entry.classType, entry.url)
+    )))
+  )))
+))

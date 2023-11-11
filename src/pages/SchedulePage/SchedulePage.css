@@ -1,4 +1,3 @@
-
 .schedule-header{
   margin: 40px;
   font-size: 2rem;
@@ -34,4 +33,18 @@
 
 .cell-editor{
   width: 100%;
+}
+
+.header-button-container{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap:10px;
+}
+.p-button-label{
+  font-weight: normal !important;
+}
+.header-button-container > * > .pi-plus{
+  margin-right: 8px !important;
 }

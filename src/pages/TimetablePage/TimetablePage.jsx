@@ -11,7 +11,7 @@ import { Tag } from 'primereact/tag';
 import { FileUpload } from 'primereact/fileupload';
 import { InputMask } from 'primereact/inputmask'
 import axios from 'axios';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { ContextMenu } from 'primereact/contextmenu';
 import { TimetableEntry } from '../../shared/timetable/TimetableEntity';
@@ -24,6 +24,7 @@ export default function TimetablePage() {
   const [selectedRow, setSelectedRow] = useState();
   const [contextMenuData, setContextMenuData] = useState({})
   const classTypes = ['LECTURE', 'LAB', 'PRACTICE', 'OTHER'];
+  const chatId = searchParams.get('chatId');
   const cm = useRef(null);
   const cmItems = [
     { label: 'Insert row above', icon: 'pi pi-angle-up', command: () => insertRowAbove()},
@@ -46,18 +47,19 @@ export default function TimetablePage() {
   ]
 
   useEffect(() => {
-    // const chatId = searchParams.get('chatId');
-    // axios.get('http://185.135.158.207:19132/api/timetables/retrieve', {
-    //   headers: {
-    //     chatId: chatId
-    //   }
-    // })
-    // .then((res) => {
-    //   setTimetableData(res.data);
-    // })
-    // .catch((error) => {
-    //   console.log(error);
-    // })
+    if(chatId){
+      axios.get('http://185.135.158.207:19132/api/timetables/retrieve', {
+        headers: {
+          chatId: chatId
+        }
+      })
+      .then((res) => {
+        setTimetableData(res.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+    }
     setTimetableData(defaultClassData);
   }, [])
 
@@ -149,7 +151,8 @@ export default function TimetablePage() {
           <FileUpload mode='basic' accept='*' url="/api/upload" onUpload={uploadFile} chooseLabel='Завантажити файл'></FileUpload>
         </div>
       </div>
-      {timetableData.map((week, weekIndex) => (
+      {chatId? 
+      timetableData.map((week, weekIndex) => (
         <Card title={week.weekType == 'WEEK_A'? 'Тиждень A' : 'Тиждень B'} className='data-card' key={week.weekType}>
           <Accordion multiple>
             {week.days.map((day, dayIndex) => (
@@ -168,7 +171,10 @@ export default function TimetablePage() {
             ))}
           </Accordion>
         </Card>
-      ))}
+      )) : 
+      <Card title='Відсутній Id чату' className='data-card'>
+        <div><Link to='/settings'>Для встановлення Id чату перейдіть до налаштувань <span className='pi pi-external-link'></span></Link></div>
+      </Card>}
     </>
   )
 }

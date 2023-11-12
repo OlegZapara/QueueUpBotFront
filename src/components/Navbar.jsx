@@ -1,47 +1,26 @@
-import React, { useEffect, useState } from 'react'
-import { TabMenu } from 'primereact/tabmenu';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { Menubar } from 'primereact/menubar';
+import { Avatar } from 'primereact/avatar';
+import { SpeedDial } from 'primereact/speeddial';
+import { Button } from 'primereact/button';
+import './Navbar.css'
         
 
 export default function Navbar() {
-  const [index, setIndex] = useState(0);
   const navigate = useNavigate();
-  const location = useLocation();
-  useEffect(() => {
-    switch (location.pathname){
-      case '/':
-        setIndex(0);
-        break;
-      case '/timetable':
-        setIndex(1);
-        break;
-      case '/documentation':
-        setIndex(2);
-        break;
-      case '/settings':
-        setIndex(3);
-        break;
-      default:
-        setIndex(0);
-        break;
-    }
 
-  })
-  function ChangePage(e){
-    setIndex(e.index)
-    if(items[index].to){
-      navigate(items[e.index].to);
-    }
-  }
   const items = [
-    {label: 'Головна', icon: 'pi pi-fw pi-home', to: '/'},
-    {label: 'Розклад', icon: 'pi pi-fw pi-calendar', to:'/timetable'},
-    {label: 'Документація', icon: 'pi pi-fw pi-file', to:'/documentation'},
-    {label: 'Налаштування', icon: 'pi pi-fw pi-cog', to:'/settings'},
+    {label: 'Головна', icon: 'pi pi-fw pi-home', command: () => navigate('/')},
+    {label: 'Розклад', icon: 'pi pi-fw pi-calendar', command: () => navigate('/timetable')},
+    {label: 'Документація', icon: 'pi pi-fw pi-file', command: () => navigate('/documentation')},
+    {label: 'Налаштування', icon: 'pi pi-fw pi-cog', command: () => navigate('/settings')},
   ];
+
+  const end = <button className='avatar-button' onClick={() => console.log('avatar')}><Avatar className='avatar' size='large' image='/icon-1.png' shape='circle'></Avatar></button>
+
   return (
     <>
-      <TabMenu model={items} activeIndex={index} onTabChange={(e) => ChangePage(e)}></TabMenu>
+      <Menubar model={items} end={end}></Menubar>
     </>
   )
 }

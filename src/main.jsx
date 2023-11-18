@@ -8,8 +8,6 @@ import 'primeicons/primeicons.css';
         
 
 import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
-        
-        
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>

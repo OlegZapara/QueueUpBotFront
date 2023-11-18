@@ -11,20 +11,20 @@ import { Tag } from 'primereact/tag';
 import { FileUpload } from 'primereact/fileupload';
 import { InputMask } from 'primereact/inputmask'
 import axios from 'axios';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { ContextMenu } from 'primereact/contextmenu';
 import { TimetableEntry } from '../../shared/timetable/TimetableEntity';
 
 export default function TimetablePage() {
-
+  const navigate = useNavigate();
   const [timetableData, setTimetableData] = useState([]);
   const [editedCell, setEditedCell] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedRow, setSelectedRow] = useState();
   const [contextMenuData, setContextMenuData] = useState({})
   const classTypes = ['LECTURE', 'LAB', 'PRACTICE', 'OTHER'];
-  const chatId = searchParams.get('chatId');
+  let chatId = searchParams.get('chatId');
   const cm = useRef(null);
   const cmItems = [
     { label: 'Insert row above', icon: 'pi pi-angle-up', command: () => insertRowAbove()},
@@ -47,10 +47,15 @@ export default function TimetablePage() {
   ]
 
   useEffect(() => {
+    if(!chatId){
+      chatId = localStorage.getItem('chatId');
+    }
     if(chatId){
-      axios.get('http://185.135.158.207:19132/api/timetables/retrieve', {
+      navigate(`/timetable?chatId=${chatId}`);
+      axios.get('https://api.uaproject.xyz/timetables/retrieve', {
         headers: {
-          chatId: chatId
+          chatId: chatId,
+          "X-API-KEY": import.meta.env.VITE_X_API_KEY
         }
       })
       .then((res) => {
@@ -60,7 +65,6 @@ export default function TimetablePage() {
         console.error(error);
       })
     }
-    setTimetableData(defaultClassData);
   }, [])
 
   function getClassType(value){

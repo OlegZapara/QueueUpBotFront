@@ -11,6 +11,7 @@ export default function SettingsPage() {
   const [telegramToken, setTelegramToken] = useState("")
   const [telegramUsername, setTelegramUsername] = useState("")
   const [botState, setBotState] = useState('active');
+  const [chatId, setChatId] = useState(localStorage.getItem('chatId'));
 
   function getBotStateSeverity(){
     switch (botState.toLowerCase()){
@@ -25,11 +26,23 @@ export default function SettingsPage() {
     }
   }
 
+  function updateChatId(newValue){
+    window.localStorage.setItem('chatId', newValue);
+    setChatId(newValue);
+  }
+
   return (
     <>
       <div className='settings-header'>
         <span>Налаштування</span><span className='bot-state'>СТАН БОТА:<Tag value={botState.toUpperCase()} severity={getBotStateSeverity()}></Tag></span>
       </div>
+
+      <Card title='Налаштування чату' className='options-card'>
+        <div className='option'>
+          <span>Встановлення ChatId</span>
+          <InputText value={chatId} onChange={e => updateChatId(e.target.value)}></InputText>
+        </div>
+      </Card>
 
       <Card title='Налаштування бота' className='options-card'>
 

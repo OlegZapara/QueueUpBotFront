@@ -5,26 +5,25 @@ import { Accordion, AccordionTab } from 'primereact/accordion';
 import { DataTable } from 'primereact/datatable';
 import { InputText } from 'primereact/inputtext';
 import { Card } from 'primereact/card';
-import { defaultData, defaultClassData } from '../../shared/timetable/TimetableEntity';
+import { defaultData, defaultClassData, Timetable, TimetableDay } from '../../shared/timetable/TimetableEntity';
 import { Dropdown } from 'primereact/dropdown';
 import { Tag } from 'primereact/tag';
-import { FileUpload } from 'primereact/fileupload';
 import { InputMask } from 'primereact/inputmask'
 import axios from 'axios';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { ContextMenu } from 'primereact/contextmenu';
 import { TimetableEntry } from '../../shared/timetable/TimetableEntity';
+import { Dialog } from 'primereact/dialog';
 
 export default function TimetablePage() {
   const navigate = useNavigate();
   const [timetableData, setTimetableData] = useState([]);
-  const [editedCell, setEditedCell] = useState([]);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, _] = useSearchParams();
   const [selectedRow, setSelectedRow] = useState();
   const [contextMenuData, setContextMenuData] = useState({})
+  const [activeDialog, setActiveDialog] = useState(false)
   const classTypes = ['LECTURE', 'LAB', 'PRACTICE', 'OTHER'];
-  let chatId = searchParams.get('chatId');
   const cm = useRef(null);
   const cmItems = [
     { label: 'Insert row above', icon: 'pi pi-angle-up', command: () => insertRowAbove()},
@@ -32,11 +31,14 @@ export default function TimetablePage() {
     { label: 'Delete row', icon: 'pi pi-fw pi-trash', command: () => deleteRow()}
   ];
 
-  const timeEditor = (c) => (<InputMask mask='99:99' placeholder='00:00' value={getCell(c)} onChange={e => handleUpdate(c, e)}/>);
+  const timeEditor = (c) => (<InputMask mask='99:99:99' placeholder='00:00:00' value={getCell(c)} onChange={e => handleUpdate(c, e)}/>);
 
   const classTypeEditor = (c) => (<Dropdown value={getCell(c)} options={classTypes} onChange={(e) => handleUpdate(c, e)} itemTemplate={option => <Tag value={option} severity={getClassType(option)}></Tag>}/>);
   
   const textEditor = (c) => (<InputText type="text" value={getCell(c)} onChange={e => handleUpdate(c, e)}/>);
+
+  const weeks = ["WEEK_A", "WEEK_B"]
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
   const columns = [
     { field:'className', header:'Урок', editor:textEditor },
@@ -47,18 +49,29 @@ export default function TimetablePage() {
   ]
 
   useEffect(() => {
-    if(!chatId){
-      chatId = localStorage.getItem('chatId');
-    }
+    const chatId = searchParams.get('chatId');
     if(chatId){
-      navigate(`/timetable?chatId=${chatId}`);
+      localStorage.setItem('chatId', chatId);
+      navigate('/timetable');
+    }
+    if(!chatId){
       axios.get('https://api.uaproject.xyz/timetables/retrieve', {
         headers: {
-          chatId: chatId,
+          chatId: localStorage.getItem('chatId'),
           "X-API-KEY": import.meta.env.VITE_X_API_KEY
         }
       })
       .then((res) => {
+        weeks.map(week => {
+          if(!res.data.find(y => y.weekType == week)){
+            res.data.push(new Timetable(week, []));
+          }
+          days.map(day => {
+            if(!res.data.find(y => y.weekType == week).days.find(x => x.dayName.toUpperCase() == day.toUpperCase())){
+              res.data.find(y => y.weekType == week).days.push(new TimetableDay(day.toUpperCase(), []));
+            }
+          })
+        })
         setTimetableData(res.data);
       })
       .catch((error) => {
@@ -132,8 +145,19 @@ export default function TimetablePage() {
     setContextMenuData({week: weekIndex, day: tableIndex, row: selectedRow});
   }
 
-  function completeEdit(editedCell){
-    // axios.post('http://185.135.158.207:19132/api/timetables/update', timetableData);
+  function completeEdit(){
+    console.log(JSON.stringify(timetableData));
+    axios.post('https://api.uaproject.xyz/timetables/update', JSON.stringify(timetableData), {
+      headers: {
+        chatId: localStorage.getItem('chatId'),
+        "X-API-KEY": import.meta.env.VITE_X_API_KEY,
+        'Content-Type':'application/json'
+      }
+    }).then(() => {
+      console.log("Timetable updated")
+    }).catch(e => {
+      console.log(e);
+    });
   }
 
   function classTypeBodyTemplate(rowData){
@@ -141,33 +165,41 @@ export default function TimetablePage() {
     return <Tag value={rowData.classType} severity={getClassType(rowData.classType)}></Tag>
   }
 
-  function uploadFile(){
-    console.error('failed to upload file');
-  }
-
   return (
     <>
       <ContextMenu model={cmItems} ref={cm} breakpoint='767px'/>
       <div className='timetable-header'>
-        <div>Редактор розкладу</div>
+        <div>Редактор розкладу <span onClick={() => setActiveDialog(true)} className='pi pi-question-circle hint'></span></div>
         <div className='header-button-container'>
           <Button icon='pi pi-plus'>Створити новий розклад</Button>
-          <FileUpload mode='basic' accept='*' url="/api/upload" onUpload={uploadFile} chooseLabel='Завантажити файл'></FileUpload>
         </div>
       </div>
-      {chatId? 
+      <Dialog header='Як використовувати редактор таблиць?' style={{width:'calc(200px + 40vw)'}} visible={activeDialog} onHide={() => setActiveDialog(false)}>
+        <h3>Для редагування поля:</h3>
+        <ol>
+          <li>Натисність на клітинку, яку потрібно редагувати</li><br/>
+          <li>Введіть нове значення</li><br/>
+          <li>Натисніть клавішу Enter, після цього нове значення буде збережене</li><br/>
+        </ol>
+        <h3>Для редагування таблиці:</h3>
+        <ol>
+          <li>Натисність правою кнопкою миші на рядок таблиці, яку потрібно редагувати</li><br/>
+          <li>Оберіть потрібну команду з меню <br/>(команда здійснюється до рядка, на який було натиснуто)</li><br/>
+        </ol>
+      </Dialog>
+      {localStorage.getItem('chatId')? 
       timetableData.map((week, weekIndex) => (
         <Card title={week.weekType == 'WEEK_A'? 'Тиждень A' : 'Тиждень B'} className='data-card' key={week.weekType}>
           <Accordion multiple>
             {week.days.map((day, dayIndex) => (
-              <AccordionTab header={day.dayName} key={week.weekType + day.dayName}>
+              <AccordionTab headerTemplate={<div className='accordion-header'><span>{day.dayName}</span><span>{day.classEntries.length == 0? 'EMPTY' : ''}</span></div>} key={week.weekType + day.dayName}>
                 <div onContextMenu={e => handleContextMenu(e)}>
                   <DataTable id={`${weekIndex} ${dayIndex}`} selectionMode='single' selection={selectedRow} value={day.classEntries} tableStyle={{ minWidth: '50rem' }} editMode="cell" onRowMouseEnter={e => setSelectedRow(e.index)}>
                     {columns.map(col => (
                       <Column key={`${week.weekType}-${day.dayName}-${col.field}`} 
                       field={col.field} header={col.header} body={col.body}
                       editor={(e) => col.editor([weekIndex, dayIndex, e])} 
-                      onCellEditComplete={(e) => completeEdit([weekIndex, dayIndex, e])}/>
+                      onCellEditComplete={() => completeEdit()}/>
                     ))}
                   </DataTable>
                 </div>

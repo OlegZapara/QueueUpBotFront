@@ -48,3 +48,18 @@
 .header-button-container > * > .pi-plus{
   margin-right: 8px !important;
 }
+
+.hint{
+  cursor: pointer;
+  font-size: large;
+  color:var(--primary-color);
+}
+.accordion-header{
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.p-accordion-header-text{
+  width: 100%;
+}

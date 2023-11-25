@@ -1,10 +1,22 @@
 import { Fieldset } from 'primereact/fieldset'
 import React from 'react'
 import './MainPage.css'
+import { Divider } from 'primereact/divider'
 
 export default function MainPage() {
   return (
     <>
+      <Divider></Divider>
+      <div className='welcome-container'>
+        <div className='welcome-text-container'>
+          <span className='welcome-text'>Ласкаво просимо в QueueUp Bot</span>
+          <span>Тут ви зможете знайти потрібну інформацію стосовно бота, а також налаштувати всі необхідні аспекти його роботи</span>
+        </div>
+        <div className='welcome-image-container'>
+          <img className='welcome-image' src='Akhaladze.jpg'/>
+        </div>
+      </div>
+      <Divider></Divider>
       <Fieldset legend={'Про бота:'} className='fieldset'>
       <div>
       <h1 id="about">About</h1>

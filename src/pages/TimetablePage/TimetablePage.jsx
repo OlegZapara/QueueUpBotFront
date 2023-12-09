@@ -5,20 +5,22 @@ import { Accordion, AccordionTab } from 'primereact/accordion';
 import { DataTable } from 'primereact/datatable';
 import { InputText } from 'primereact/inputtext';
 import { Card } from 'primereact/card';
-import { defaultData, defaultClassData, Timetable, TimetableDay } from '../../shared/timetable/TimetableEntity';
+import { Timetable, TimetableDay } from '../../shared/timetable/TimetableEntity';
 import { Dropdown } from 'primereact/dropdown';
 import { Tag } from 'primereact/tag';
 import { InputMask } from 'primereact/inputmask'
 import axios from 'axios';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { ContextMenu } from 'primereact/contextmenu';
 import { TimetableEntry } from '../../shared/timetable/TimetableEntity';
 import { Dialog } from 'primereact/dialog';
+import EmptyTimetablePage from './EmptyTimetablePage';
+import { useTimetableData } from '../../hooks/useTimetableData';
 
 export default function TimetablePage() {
   const navigate = useNavigate();
-  const [timetableData, setTimetableData] = useState([]);
+  const [timetableData, setTimetableData, getCell, updateCell] = useTimetableData()
   const [searchParams, _] = useSearchParams();
   const [selectedRow, setSelectedRow] = useState();
   const [contextMenuData, setContextMenuData] = useState({})
@@ -62,16 +64,6 @@ export default function TimetablePage() {
         }
       })
       .then((res) => {
-        weeks.map(week => {
-          if(!res.data.find(y => y.weekType == week)){
-            res.data.push(new Timetable(week, []));
-          }
-          days.map(day => {
-            if(!res.data.find(y => y.weekType == week).days.find(x => x.dayName.toUpperCase() == day.toUpperCase())){
-              res.data.find(y => y.weekType == week).days.push(new TimetableDay(day.toUpperCase(), []));
-            }
-          })
-        })
         setTimetableData(res.data);
       })
       .catch((error) => {
@@ -92,48 +84,30 @@ export default function TimetablePage() {
         return '';
     }
   }
-  function getCell(cell){
-    return timetableData[cell[0]].days[cell[1]].classEntries[cell[2].rowIndex][cell[2].field];
-  }
-  function updateClassEntry(cell, value){
-    setTimetableData(data => {
-      const newData = [...data];
-      newData[cell[0]].days[cell[1]].classEntries = newData[cell[0]].days[cell[1]].classEntries.map((entry, entryIndex) => {
-        if(entryIndex !== cell[2].rowIndex){
-          return entry;
-        }
-        return {
-          ...entry,
-          [cell[2].field]: value
-        }
-      })
-      return newData;
-    })
-  }
-
+  
   function handleUpdate(editedCell, event){
     if(event.target.value != getCell(editedCell)){
-      updateClassEntry(editedCell, event.target.value);
+      updateCell(editedCell, event.target.value);
     }
   }
 
   function insertRowAbove(){
-    setTimetableData(data => {
-      const newData = [...data];
+    setTimetableData(() => {
+      const newData = [...timetableData];
       newData[contextMenuData.week].days[contextMenuData.day].classEntries.splice(contextMenuData.row, 0, new TimetableEntry("", "", "", "", ""));
       return newData;
     });
   }
   function insertRowBelow(){
-    setTimetableData(data => {
-      const newData = [...data];
+    setTimetableData(() => {
+      const newData = [...timetableData];
       newData[contextMenuData.week].days[contextMenuData.day].classEntries.splice(contextMenuData.row + 1, 0, new TimetableEntry("", "", "", "", ""));
       return newData;
     });
   }
   function deleteRow(){
-    setTimetableData(data => {
-      const newData = [...data];
+    setTimetableData(() => {
+      const newData = [...timetableData];
       newData[contextMenuData.week].days[contextMenuData.day].classEntries.splice(contextMenuData.row, 1);
       return newData;
     })
@@ -165,13 +139,22 @@ export default function TimetablePage() {
     return <Tag value={rowData.classType} severity={getClassType(rowData.classType)}></Tag>
   }
 
+  function createNewTimetable(){
+    const newTimetable = weeks.map(week => (
+      new Timetable(week, days.map(day => (
+        new TimetableDay(day, [])
+      )))
+    ))
+    setTimetableData(newTimetable);
+  }
+
   return (
     <>
       <ContextMenu model={cmItems} ref={cm} breakpoint='767px'/>
       <div className='timetable-header'>
         <div>Редактор розкладу <span onClick={() => setActiveDialog(true)} className='pi pi-question-circle hint'></span></div>
         <div className='header-button-container'>
-          <Button icon='pi pi-plus'>Створити новий розклад</Button>
+          <Button icon='pi pi-plus' onClick={() => createNewTimetable()}>Створити новий розклад</Button>
         </div>
       </div>
       <Dialog header='Як використовувати редактор таблиць?' style={{width:'calc(200px + 40vw)'}} visible={activeDialog} onHide={() => setActiveDialog(false)}>
@@ -208,9 +191,7 @@ export default function TimetablePage() {
           </Accordion>
         </Card>
       )) : 
-      <Card title='Відсутній Id чату' className='data-card'>
-        <div><Link to='/settings'>Для встановлення Id чату перейдіть до налаштувань <span className='pi pi-external-link'></span></Link></div>
-      </Card>}
+      <EmptyTimetablePage/>}
     </>
   )
 }
